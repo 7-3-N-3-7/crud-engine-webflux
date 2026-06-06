@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+		<groupId>com.org73n37</groupId>
+		<artifactId>crudapp-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	
+	<artifactId>crud-engine-webflux</artifactId>
+	<name>crud-engine-webflux</name>
+	<description>WebFlux HTTP REST Routing &amp; Byte Buddy Controller Module</description>
+
+	<dependencies>
+		<!-- Core module dependency -->
+		<dependency>
+			<groupId>com.org73n37</groupId>
+			<artifactId>crud-engine-core</artifactId>
+		</dependency>
+
+		<!-- Spring WebFlux -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+		<!-- Byte Buddy for Dynamic RestControllers compilation -->
+		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy</artifactId>
+		</dependency>
+	</dependencies>
+</project>
