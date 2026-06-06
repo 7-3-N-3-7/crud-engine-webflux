@@ -42,13 +42,15 @@ public class UniversalCrudController {
     private final CrudEngine crudManager;
     private final ObjectMapper objectMapper;
     private final Validator validator;
-    private final TransactionTemplate transactionTemplate;
-    private final jakarta.persistence.EntityManager entityManager;
 
-    public UniversalCrudController(CrudEngine crudManager, PlatformTransactionManager transactionManager, jakarta.persistence.EntityManager entityManager) {
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private PlatformTransactionManager transactionManager;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private jakarta.persistence.EntityManager entityManager;
+
+    public UniversalCrudController(CrudEngine crudManager) {
         this.crudManager = crudManager;
-        this.entityManager = entityManager;
-        this.transactionTemplate = new TransactionTemplate(transactionManager);
 
         tools.jackson.databind.module.SimpleModule module = new tools.jackson.databind.module.SimpleModule();
         module.addDeserializer(String.class, new XssSanitizingDeserializer());
@@ -59,6 +61,14 @@ public class UniversalCrudController {
                 .build();
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         this.validator = factory.getValidator();
+    }
+
+    private <R> R executeInTransaction(java.util.function.Supplier<R> supplier) {
+        if (transactionManager != null) {
+            return new TransactionTemplate(transactionManager).execute(status -> supplier.get());
+        } else {
+            return supplier.get();
+        }
     }
 
     public Mono<ServerResponse> getMetadata(ServerRequest request) {
@@ -106,7 +116,7 @@ public class UniversalCrudController {
                     org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
                 }
                 try {
-                    return transactionTemplate.execute(status -> {
+                    return executeInTransaction(() -> {
                         setDbTenantContext(tenantId);
                         return metadata.getService().findAll(page, size, queryParams, sort, metadata.getDtoClass());
                     });
@@ -148,7 +158,7 @@ public class UniversalCrudController {
                     org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
                 }
                 try {
-                    return transactionTemplate.execute(status -> {
+                    return executeInTransaction(() -> {
                         setDbTenantContext(tenantId);
                         return metadata.getService().findById(id);
                     });
@@ -197,7 +207,7 @@ public class UniversalCrudController {
                             );
                         }
                         try {
-                            return transactionTemplate.execute(status -> {
+                            return executeInTransaction(() -> {
                                 setDbTenantContext(tenantId);
                                 metadata.getInterceptor().beforeCreate(entity);
                                 BaseEntity res = (BaseEntity) metadata.getService().save(entity);
@@ -247,7 +257,7 @@ public class UniversalCrudController {
                             );
                         }
                         try {
-                            return transactionTemplate.execute(status -> {
+                            return executeInTransaction(() -> {
                                 setDbTenantContext(tenantId);
                                 metadata.getInterceptor().beforeUpdate(entity);
                                 BaseEntity res = (BaseEntity) metadata.getService().update(id, entity);
@@ -288,12 +298,13 @@ public class UniversalCrudController {
                     org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
                 }
                 try {
-                    transactionTemplate.executeWithoutResult(status -> {
+                    executeInTransaction(() -> {
                         setDbTenantContext(tenantId);
                         metadata.getInterceptor().beforeDelete(id);
                         metadata.getService().deleteById(id);
                         metadata.getInterceptor().afterDelete(id);
                         log.info("[AUDIT MUTATION] Action=DELETE Resource={} User={} Tenant={} RecordID={}", resource, username, tenantId, id);
+                        return null;
                     });
                 } finally {
                     com.org73n37.crudapp.infrastructure.security.TenantContext.clear();
@@ -515,10 +526,12 @@ public class UniversalCrudController {
     }
 
     private void setDbTenantContext(String tenantId) {
-        if (tenantId == null || !tenantId.matches("^[a-zA-Z0-9_\\-]+$")) {
-            throw new IllegalArgumentException("Invalid tenant identifier format");
+        if (entityManager != null) {
+            if (tenantId == null || !tenantId.matches("^[a-zA-Z0-9_\\-]+$")) {
+                throw new IllegalArgumentException("Invalid tenant identifier format");
+            }
+            entityManager.createNativeQuery("SET LOCAL app.current_tenant = '" + tenantId + "'").executeUpdate();
         }
-        entityManager.createNativeQuery("SET LOCAL app.current_tenant = '" + tenantId + "'").executeUpdate();
     }
 
     public static class XssSanitizingDeserializer extends tools.jackson.databind.ValueDeserializer<String> {
