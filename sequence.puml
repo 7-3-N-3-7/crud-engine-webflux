@@ -1,4 +1,6 @@
-@startuml WebFlux Request Handling Sequence
+@startuml WebFlux_Request_Handling_Sequence
+title WebFlux Request Handling Sequence
+
 participant "ReactiveRequestTracingFilter" as TraceFilter
 participant "DynamicControllerRegister" as Router
 participant "UniversalCrudController" as Controller
@@ -29,7 +31,7 @@ deactivate Validator
 
 alt Validation Failed
   Controller --> TraceFilter : throw ValidationException
-  TraceFilter --> [ : Error Response (HTTP 400)
+  TraceFilter -->[ : Error Response (HTTP 400)
 end
 
 Controller -> Mapper : convertValue(dto, entityClass)
@@ -55,6 +57,6 @@ Controller --> Router : ResponseEntity(Saved Entity, status=201)
 deactivate Controller
 Router --> TraceFilter : ServerResponse
 deactivate Router
-TraceFilter --> [ : HTTP Response (201 Created)
+TraceFilter -->[ : HTTP Response (201 Created)
 deactivate TraceFilter
 @enduml
