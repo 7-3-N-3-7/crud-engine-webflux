@@ -1,0 +1,49 @@
+@startuml WebFlux Class Diagram
+skinparam classAttributeIconSize 0
+
+package com.org73n37.crudapp.api {
+  class UniversalCrudController {
+    - CrudEngine crudManager
+    - ObjectMapper objectMapper
+    - Validator validator
+    - PlatformTransactionManager transactionManager
+    - EntityManager entityManager
+    + getMetadata(ServerRequest): Mono<ServerResponse>
+    + getAll(ServerRequest): Mono<ResponseEntity<Flux<?>>>
+    + getById(ServerRequest): Mono<ResponseEntity<?>>
+    + create(ServerRequest): Mono<ResponseEntity<?>>
+    + update(ServerRequest): Mono<ResponseEntity<?>>
+    + delete(ServerRequest): Mono<ResponseEntity<Void>>
+    + getSwaggerUi(ServerRequest): Mono<ServerResponse>
+    + getOpenApiJson(ServerRequest): Mono<ServerResponse>
+    - executeInTransaction(Supplier): R
+    - setDbTenantContext(String): void
+    - validate(Object): void
+  }
+  
+  class BaseCrudController {
+  }
+  
+  class HealthController {
+  }
+}
+
+package com.org73n37.crudapp.infrastructure.web {
+  class DynamicControllerRegister {
+    - CrudEngine engine
+    - UniversalCrudController controller
+    + getRouterFunction(): RouterFunction<ServerResponse>
+  }
+  
+  class DynamicControllerLoader {
+  }
+  
+  class WebFluxConfig {
+  }
+  
+  class ReactiveRequestTracingFilter {
+  }
+}
+
+DynamicControllerRegister --> UniversalCrudController : "delegates requests"
+@enduml

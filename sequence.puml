@@ -1,0 +1,60 @@
+@startuml WebFlux Request Handling Sequence
+participant "ReactiveRequestTracingFilter" as TraceFilter
+participant "DynamicControllerRegister" as Router
+participant "UniversalCrudController" as Controller
+participant "Validator" as Validator
+participant "ObjectMapper" as Mapper
+participant "CrudEngine" as Engine
+participant "CrudService" as Service
+
+[-> TraceFilter : filter(ServerWebExchange)
+activate TraceFilter
+TraceFilter -> TraceFilter : Generate requestId
+TraceFilter -> Router : route(ServerRequest)
+activate Router
+Router -> Controller : create(ServerRequest)
+activate Controller
+
+Controller -> Controller : Read Context (tenantId, username, requestId)
+Controller -> Controller : Set MDC context
+
+Controller -> Controller : request.bodyToMono(dtoClass)
+activate Controller
+deactivate Controller
+
+Controller -> Validator : validate(dto)
+activate Validator
+Validator --> Controller : ConstraintViolations
+deactivate Validator
+
+alt Validation Failed
+  Controller --> TraceFilter : throw ValidationException
+  TraceFilter --> [ : Error Response (HTTP 400)
+end
+
+Controller -> Mapper : convertValue(dto, entityClass)
+activate Mapper
+Mapper --> Controller : Entity
+deactivate Mapper
+
+Controller -> Engine : getMetadata(resource)
+activate Engine
+Engine --> Controller : ResourceMetadata
+deactivate Engine
+
+Controller -> Controller : executeInTransaction()
+activate Controller
+Controller -> Controller : setDbTenantContext(tenantId)
+Controller -> Service : save(entity)
+activate Service
+Service --> Controller : Saved Entity
+deactivate Service
+deactivate Controller
+
+Controller --> Router : ResponseEntity(Saved Entity, status=201)
+deactivate Controller
+Router --> TraceFilter : ServerResponse
+deactivate Router
+TraceFilter --> [ : HTTP Response (201 Created)
+deactivate TraceFilter
+@enduml

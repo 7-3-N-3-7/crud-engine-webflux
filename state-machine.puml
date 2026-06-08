@@ -1,0 +1,19 @@
+@startuml WebFlux Controller Registration State Machine
+[*] --> ConfigurationLoaded : Server context starts
+
+ConfigurationLoaded --> ScanningRoutes : DynamicControllerRegister init()
+ScanningRoutes --> MappingRoutes : Discover dynamic paths from CrudEngine
+
+MappingRoutes --> RoutesBound : RouterFunctions.route() matches resources
+RoutesBound --> ServerListening : Netty / Tomcat starts
+
+state ServerListening {
+  [*] --> RequestReceived
+  RequestReceived --> ResolvingContext : Extract tenant/user from JWT context
+  ResolvingContext --> ProcessingHandler : Dispatch to handler method
+  ProcessingHandler --> DispatchingResponse : Map returned Mono/Flux to ServerResponse
+  DispatchingResponse --> RequestReceived : Completed
+}
+
+ServerListening --> [*] : Server shutdown
+@enduml

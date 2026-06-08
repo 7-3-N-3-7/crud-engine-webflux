@@ -1,0 +1,26 @@
+@startuml WebFlux Entity Relation Diagram
+skinparam linetype ortho
+
+entity "ServerRequest" as req {
+  * pathVariables
+  * queryParams
+  * headers
+}
+
+entity "ServerResponse" as resp {
+  * statusCode
+  * headers
+  * body
+}
+
+entity "ErrorResponse" as err {
+  * timestamp : Long
+  * status : Integer
+  * error : String
+  * message : String
+  * path : String
+}
+
+req ||--|| resp : "produces"
+resp ||--o| err : "can wrap on failure"
+@enduml

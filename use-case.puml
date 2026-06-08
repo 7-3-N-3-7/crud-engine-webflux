@@ -1,0 +1,26 @@
+@startuml WebFlux Use Cases
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Client App" as client
+actor "System Developer" as dev
+
+rectangle "crud-engine-webflux" {
+  usecase "Send HTTP REST requests (GET/POST/PUT/DELETE)" as UC_Rest
+  usecase "Validate incoming request body validation constraints" as UC_Validate
+  usecase "Sanitize request strings from XSS scripts" as UC_Sanitize
+  usecase "Trace requests with reactive UUID tracing filters" as UC_Trace
+  usecase "View Swagger UI and OpenAPI 3.0 docs" as UC_Docs
+  usecase "Check system health and status" as UC_Health
+}
+
+client --> UC_Rest
+client --> UC_Docs
+client --> UC_Health
+
+UC_Rest ..> UC_Validate : <<include>>
+UC_Rest ..> UC_Sanitize : <<include>>
+UC_Rest ..> UC_Trace : <<include>>
+
+dev --> UC_Docs
+@enduml
