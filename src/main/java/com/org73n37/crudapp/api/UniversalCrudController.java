@@ -524,7 +524,9 @@ public class UniversalCrudController {
             if (tenantId == null || !tenantId.matches("^[a-zA-Z0-9_\\-]+$")) {
                 throw new IllegalArgumentException("Invalid tenant identifier format");
             }
-            entityManager.createNativeQuery("SET LOCAL app.current_tenant = '" + tenantId + "'").executeUpdate();
+            entityManager.createNativeQuery("SELECT set_config('app.current_tenant', :tenantId, true)")
+                         .setParameter("tenantId", tenantId)
+                         .getSingleResult();
         }
     }
 
