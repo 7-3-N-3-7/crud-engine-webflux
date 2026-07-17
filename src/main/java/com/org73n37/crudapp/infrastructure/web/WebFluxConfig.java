@@ -22,7 +22,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 @Configuration
 public class WebFluxConfig {
 
-    @org.springframework.beans.factory.annotation.Value("${app.security.cors.allowed-origins:http://localhost:5173}")
+    @org.springframework.beans.factory.annotation.Value("${app.security.cors.allowed-origins:}")
     private String allowedOriginsProp;
 
     @Bean
