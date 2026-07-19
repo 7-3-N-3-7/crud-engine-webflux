@@ -28,7 +28,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+			<artifactId>springdoc-openapi-starter-common</artifactId>
 		</dependency>
 
 		<!-- Byte Buddy for Dynamic RestControllers compilation -->
